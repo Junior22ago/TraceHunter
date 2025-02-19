@@ -1,0 +1,58 @@
+#!/bin/bash
+
+# Script para Coleta de Evidências Forenses em Linux
+# Descrição: Coleta e organiza evidências forenses usando comandos nativos do Linux
+
+echo "Iniciando coleta de evidências..."
+
+# Criar diretório para armazenar evidências
+
+evidence_dir="/root/forense/$(date +%Y-%m-%d_%H-%M-%S)"
+mkdir -p "$evidence_dir"
+echo "Diretório de evidências: $evidence_dir"
+
+# Coleta de informações básicas
+
+uname -a > "$evidence_dir/sistema_info.txt"
+uptime >> "$evidence_dir/sistema_info.txt"
+
+# Listar processos em execução
+
+ps aux > "$evidence_dir/processos.txt"
+
+# Listar conexões de rede
+
+netstat -tunap > "$evidence_dir/conexoes_rede.txt"
+ss -tunap >> "$evidence_dir/conexoes_rede.txt"
+
+# Coletar informações de usuários e sessões
+
+who -a > "$evidence_dir/usuarios_sessoes.txt"
+last > "$evidence_dir/historico_logins.txt"
+
+# Coletar informações sobre o disco
+
+df -h > "$evidence_dir/uso_disco.txt"
+mount > "$evidence_dir/particoes_montadas.txt"
+
+# Coletar logs do sistema
+
+cp /var/log/syslog "$evidence_dir/" 2>/dev/null
+cp /var/log/auth.log "$evidence_dir/" 2>/dev/null
+cp /var/log/dmesg "$evidence_dir/" 2>/dev/null
+
+# Coletar histórico de comandos
+
+cp ~/.bash_history "$evidence_dir/" 2>/dev/null
+echo "Histórico de comandos copiado"
+
+# Calcular hashes dos arquivos coletados
+
+find "$evidence_dir" -type f -exec sha256sum {} + > "$evidence_dir/hashes.txt"
+
+# Compactar e proteger com senha
+
+zip -P "ForenseSenhaSegura" -r "$evidence_dir.zip" "$evidence_dir"
+echo "Coleta finalizada e evidências armazenadas em $evidence_dir.zip"
+
+exit 0
